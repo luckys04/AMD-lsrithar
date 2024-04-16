@@ -1,4 +1,6 @@
 import subprocess
+import requests
+import os
 
 # List of packages with versions
 packages = [
@@ -35,23 +37,25 @@ def install_packages(packages):
     for package in packages:
         subprocess.run(["pip", "install", package], check=True)
 
-def install_notepad_plus_plus():
-    try:
-        subprocess.run(["choco", "install", "notepadplusplus", "--version", "8.4.8", "-y"], check=True)
-    except FileNotFoundError:
-        print("Chocolatey is not installed. Please install Chocolatey before running this script.")
+def download_and_install_notepad_plus_plus():
+    url = "https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v8.4.8/npp.8.4.8.Installer.exe"
+    filename = os.path.basename(url)
+    with open(filename, "wb") as f:
+        response = requests.get(url)
+        f.write(response.content)
+    subprocess.run([filename, "/S"], check=True)
+    os.remove(filename)
 
-def install_vscode():
-    try:
-        subprocess.run(["choco", "install", "vscode", "-y"], check=True)
-    except FileNotFoundError:
-        print("Chocolatey is not installed. Please install Chocolatey before running this script.")
-
-def install_papi2():
-    try:
-        subprocess.run(["pip", "install", "-i", "http://mkmartifactory.amd.com/artifactory/api/pypi/fw-papi2pyapi-prod-virtual/simple", "papi2", "--trusted-host", "mkmartifactory.amd.com", "--upgrade"], check=True)
-    except subprocess.CalledProcessError as e:
-        print("Error installing papi2:", e)
+def download_and_install_vscode():
+    url = "https://update.code.visualstudio.com/latest/win32-archive/stable"
+    response = requests.get(url)
+    download_url = response.url
+    filename = os.path.basename(download_url)
+    with open(filename, "wb") as f:
+        response = requests.get(download_url)
+        f.write(response.content)
+    subprocess.run([filename, "/verysilent"], check=True)
+    os.remove(filename)
 
 def main():
     try:
@@ -64,16 +68,11 @@ def main():
     # Install packages
     install_packages(packages)
 
-    # Install Notepad++ 8.4.8
-    install_notepad_plus_plus()
+    # Download and install Notepad++
+    download_and_install_notepad_plus_plus()
 
-    # Install Visual Studio Code
-    install_vscode()
-
-    print("Before installing 'papi2', make sure to download 'ahds'.")
-
-    # Install papi2
-    install_papi2()
+    # Download and install Visual Studio Code
+    download_and_install_vscode()
 
 if __name__ == "__main__":
     main()
