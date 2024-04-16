@@ -1,6 +1,9 @@
 import subprocess
-import requests
-import os
+import sys
+
+# Function to install a Python package using pip
+def install_package(package):
+    subprocess.check_call([sys.executable, "-m", "pip", "install", package])
 
 # List of packages with versions
 packages = [
@@ -33,46 +36,20 @@ packages = [
     "wrapt==1.15.0"
 ]
 
+# Function to install all required packages
 def install_packages(packages):
     for package in packages:
-        subprocess.run(["pip", "install", package], check=True)
+        install_package(package)
 
-def download_and_install_notepad_plus_plus():
-    url = "https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v8.4.8/npp.8.4.8.Installer.exe"
-    filename = os.path.basename(url)
-    with open(filename, "wb") as f:
-        response = requests.get(url)
-        f.write(response.content)
-    subprocess.run([filename, "/S"], check=True)
-    os.remove(filename)
+# Install requests if not already installed
+try:
+    import requests
+except ImportError:
+    print("Installing 'requests' library...")
+    install_package("requests")
+    import requests
 
-def download_and_install_vscode():
-    url = "https://update.code.visualstudio.com/latest/win32-archive/stable"
-    response = requests.get(url)
-    download_url = response.url
-    filename = os.path.basename(download_url)
-    with open(filename, "wb") as f:
-        response = requests.get(download_url)
-        f.write(response.content)
-    subprocess.run([filename, "/verysilent"], check=True)
-    os.remove(filename)
+# Install all required packages
+install_packages(packages)
 
-def main():
-    try:
-        # Install Python 3.7.9 if not installed
-        subprocess.run(["python3.7.9", "--version"], check=True)
-    except FileNotFoundError:
-        print("Python 3.7.9 not found. Please install Python 3.7.9 before running this script.")
-        return
-
-    # Install packages
-    install_packages(packages)
-
-    # Download and install Notepad++
-    download_and_install_notepad_plus_plus()
-
-    # Download and install Visual Studio Code
-    download_and_install_vscode()
-
-if __name__ == "__main__":
-    main()
+print("All required packages installed successfully!")
